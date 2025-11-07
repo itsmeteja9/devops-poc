@@ -8,7 +8,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git 'https://github.com/yourusername/devops-poc.git'
+        git 'https://github.com/itsmeteja9/devops-poc.git'
       }
     }
 
