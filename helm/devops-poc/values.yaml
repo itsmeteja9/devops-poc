@@ -1,5 +1,5 @@
 image:
-  repository: us-central1-docker.pkg.dev/<PROJECT_ID>/hello-repo/devops-poc
+  repository: us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc
   tag: "latest"
   pullPolicy: Always
 
