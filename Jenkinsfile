@@ -10,11 +10,7 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
+      
 
         stage('Install Google Cloud SDK') {
             steps {
