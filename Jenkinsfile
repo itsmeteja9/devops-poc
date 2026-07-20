@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        PROJECT_ID = "<YOUR_GCP_PROJECT_ID>"
+        PROJECT_ID = "devops-poc-demo"
         REGION = "us-central1"
         REPO = "hello-repo"
         IMAGE = "hello-world"
@@ -10,7 +10,11 @@ pipeline {
 
     stages {
 
-      
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
         stage('Install Google Cloud SDK') {
             steps {
