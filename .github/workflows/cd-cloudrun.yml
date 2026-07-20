@@ -23,11 +23,14 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-repo/devops-poc:${{ github.sha }} .
+          docker build \
+            -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-repo/devops-poc:${{ github.sha }} \
+            .
 
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-repo/devops-poc:${{ github.sha }}
+          docker push \
+            ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-repo/devops-poc:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         id: deploy
