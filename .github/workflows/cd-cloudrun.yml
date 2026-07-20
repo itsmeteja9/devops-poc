@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
@@ -29,9 +30,13 @@ jobs:
           docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-repo/devops-poc:${{ github.sha }}
 
       - name: Deploy to Cloud Run
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: devops-poc
           image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-repo/devops-poc:${{ github.sha }}
           region: ${{ secrets.GCP_REGION }}
-          allow_unauthenticated: true
+          flags: --allow-unauthenticated
+
+      - name: Show Cloud Run URL
+        run: echo "Cloud Run URL: ${{ steps.deploy.outputs.url }}"
