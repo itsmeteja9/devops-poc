@@ -45,7 +45,7 @@ gcloud run deploy devops-poc ^
     --image us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc:%BUILD_NUMBER% ^
     --region us-central1 ^
     --platform managed ^
-    --allow-unauthenticated
+    --allow-unauthenticated ^
     --project devops-poc-demo
                 '''
             }
