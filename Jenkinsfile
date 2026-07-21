@@ -4,8 +4,8 @@ pipeline {
     environment {
         PROJECT_ID = "devops-poc-demo"
         REGION = "us-central1"
-        REPO = "hello-repo"
-        IMAGE = "hello-world"
+        SERVICE = "devops-poc"
+        IMAGE = "us-central1-docker.pkg.dev/${PROJECT_ID}/hello-repo/devops-poc"
     }
 
     stages {
@@ -16,74 +16,44 @@ pipeline {
             }
         }
 
-        stage('Install Google Cloud SDK') {
-            steps {
-                bat '''
-                curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-474.0.0-windows-x86_64.zip
-                tar -xf google-cloud-cli-474.0.0-windows-x86_64.zip
-                google-cloud-sdk\\install.bat
-                '''
-            }
-        }
-
         stage('Authenticate to GCP') {
             steps {
-                withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GCP_KEY')]) {
-                    bat '''
-                    google-cloud-sdk\\bin\\gcloud auth activate-service-account --key-file=%GCP_KEY%
-                    google-cloud-sdk\\bin\\gcloud config set project %PROJECT_ID%
-                    '''
+                withCredentials([file(credentialsId: 'gcp-sa', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh """
+                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                        gcloud config set project ${PROJECT_ID}
+                    """
                 }
-            }
-        }
-
-        stage('Authenticate Docker to Artifact Registry') {
-            steps {
-                bat '''
-                for /f "tokens=* usebackq" %%i in (`google-cloud-sdk\\bin\\gcloud auth print-access-token`) do set TOKEN=%%i
-                echo %TOKEN% | docker login -u oauth2accesstoken --password-stdin https://%REGION%-docker.pkg.dev
-                '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                bat '''
-                docker build -t %REGION%-docker.pkg.dev/%PROJECT_ID%/%REPO%/%IMAGE%:%BUILD_NUMBER% .
-                '''
+                sh """
+                    docker build -t ${IMAGE}:${BUILD_NUMBER} .
+                """
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push Image to Artifact Registry') {
             steps {
-                bat '''
-                docker push %REGION%-docker.pkg.dev/%PROJECT_ID%/%REPO%/%IMAGE%:%BUILD_NUMBER%
-                '''
+                sh """
+                    gcloud auth configure-docker ${REGION}-docker.pkg.dev
+                    docker push ${IMAGE}:${BUILD_NUMBER}
+                """
             }
         }
 
         stage('Deploy to Cloud Run') {
-            when {
-                branch 'main'
-            }
             steps {
-                bat '''
-                google-cloud-sdk\\bin\\gcloud run deploy %IMAGE% ^
-                    --image %REGION%-docker.pkg.dev/%PROJECT_ID%/%REPO%/%IMAGE%:%BUILD_NUMBER% ^
-                    --region %REGION% ^
-                    --platform managed ^
-                    --allow-unauthenticated
-                '''
+                sh """
+                    gcloud run deploy ${SERVICE} \
+                        --image ${IMAGE}:${BUILD_NUMBER} \
+                        --region ${REGION} \
+                        --platform managed \
+                        --allow-unauthenticated
+                """
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed. Check logs.'
         }
     }
 }
