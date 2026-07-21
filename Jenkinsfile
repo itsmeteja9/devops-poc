@@ -13,41 +13,41 @@ pipeline {
         stage('Authenticate to GCP') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    bat '''
+                    bat """
 gcloud auth activate-service-account --key-file=%GOOGLE_APPLICATION_CREDENTIALS%
 gcloud config set project devops-poc-demo
-                    '''
+"""
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                bat '''
+                bat """
 docker build -t us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc:%BUILD_NUMBER% .
-                '''
+"""
             }
         }
 
         stage('Push Image to Artifact Registry') {
             steps {
-                bat '''
+                bat """
 gcloud auth configure-docker us-central1-docker.pkg.dev
 docker push us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc:%BUILD_NUMBER%
-                '''
+"""
             }
         }
 
         stage('Deploy to Cloud Run') {
             steps {
-                bat '''
+                bat """
 gcloud run deploy devops-poc ^
     --image us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc:%BUILD_NUMBER% ^
     --region us-central1 ^
     --platform managed ^
     --allow-unauthenticated ^
     --project devops-poc-demo
-                '''
+"""
             }
         }
     }
