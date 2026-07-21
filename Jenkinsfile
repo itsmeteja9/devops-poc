@@ -10,7 +10,7 @@ pipeline {
 
     stages {
 
-        
+
         stage('Install Google Cloud SDK') {
             steps {
                 sh '''
