@@ -19,8 +19,8 @@ pipeline {
         stage('Authenticate to GCP') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-sa', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    sh """
-                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                    bat """
+                        gcloud auth activate-service-account --key-file=%GOOGLE_APPLICATION_CREDENTIALS%
                         gcloud config set project ${PROJECT_ID}
                     """
                 }
@@ -29,7 +29,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh """
+                bat """
                     docker build -t ${IMAGE}:${BUILD_NUMBER} .
                 """
             }
@@ -37,7 +37,7 @@ pipeline {
 
         stage('Push Image to Artifact Registry') {
             steps {
-                sh """
+                bat """
                     gcloud auth configure-docker ${REGION}-docker.pkg.dev
                     docker push ${IMAGE}:${BUILD_NUMBER}
                 """
@@ -46,11 +46,11 @@ pipeline {
 
         stage('Deploy to Cloud Run') {
             steps {
-                sh """
-                    gcloud run deploy ${SERVICE} \
-                        --image ${IMAGE}:${BUILD_NUMBER} \
-                        --region ${REGION} \
-                        --platform managed \
+                bat """
+                    gcloud run deploy ${SERVICE} ^
+                        --image ${IMAGE}:${BUILD_NUMBER} ^
+                        --region ${REGION} ^
+                        --platform managed ^
                         --allow-unauthenticated
                 """
             }
