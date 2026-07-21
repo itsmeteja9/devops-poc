@@ -46,6 +46,7 @@ gcloud run deploy devops-poc ^
     --region us-central1 ^
     --platform managed ^
     --allow-unauthenticated
+    --project devops-poc-demo
                 '''
             }
         }
