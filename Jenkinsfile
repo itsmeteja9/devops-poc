@@ -13,10 +13,10 @@ pipeline {
 
         stage('Install Google Cloud SDK') {
             steps {
-                sh '''
-                curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-474.0.0-linux-x86_64.tar.gz
-                tar -xf google-cloud-cli-474.0.0-linux-x86_64.tar.gz
-                ./google-cloud-sdk/install.sh --quiet
+                bat '''
+                curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-474.0.0-windows-x86_64.zip
+                tar -xf google-cloud-cli-474.0.0-windows-x86_64.zip
+                google-cloud-sdk\\install.bat /quiet
                 '''
             }
         }
@@ -24,9 +24,9 @@ pipeline {
         stage('Authenticate to GCP') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GCP_KEY')]) {
-                    sh '''
-                    ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GCP_KEY
-                    ./google-cloud-sdk/bin/gcloud config set project $PROJECT_ID
+                    bat '''
+                    google-cloud-sdk\\bin\\gcloud auth activate-service-account --key-file=%GCP_KEY%
+                    google-cloud-sdk\\bin\\gcloud config set project %PROJECT_ID%
                     '''
                 }
             }
@@ -34,24 +34,24 @@ pipeline {
 
         stage('Configure Docker for Artifact Registry') {
             steps {
-                sh '''
-                ./google-cloud-sdk/bin/gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+                bat '''
+                google-cloud-sdk\\bin\\gcloud auth configure-docker %REGION%-docker.pkg.dev --quiet
                 '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:${BUILD_NUMBER} .
+                bat '''
+                docker build -t %REGION%-docker.pkg.dev/%PROJECT_ID%/%REPO%/%IMAGE%:%BUILD_NUMBER% .
                 '''
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh '''
-                docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:${BUILD_NUMBER}
+                bat '''
+                docker push %REGION%-docker.pkg.dev/%PROJECT_ID%/%REPO%/%IMAGE%:%BUILD_NUMBER%
                 '''
             }
         }
@@ -61,11 +61,11 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh '''
-                ./google-cloud-sdk/bin/gcloud run deploy $IMAGE \
-                    --image $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:${BUILD_NUMBER} \
-                    --region $REGION \
-                    --platform managed \
+                bat '''
+                google-cloud-sdk\\bin\\gcloud run deploy %IMAGE% ^
+                    --image %REGION%-docker.pkg.dev/%PROJECT_ID%/%REPO%/%IMAGE%:%BUILD_NUMBER% ^
+                    --region %REGION% ^
+                    --platform managed ^
                     --allow-unauthenticated
                 '''
             }
