@@ -10,13 +10,18 @@ pipeline {
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
         stage('Install Google Cloud SDK') {
             steps {
                 bat '''
                 curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-474.0.0-windows-x86_64.zip
                 tar -xf google-cloud-cli-474.0.0-windows-x86_64.zip
-                google-cloud-sdk\\install.bat /quiet
+                google-cloud-sdk\\install.bat
                 '''
             }
         }
