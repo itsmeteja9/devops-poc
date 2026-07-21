@@ -37,10 +37,11 @@ pipeline {
             }
         }
 
-        stage('Configure Docker for Artifact Registry') {
+        stage('Authenticate Docker to Artifact Registry') {
             steps {
                 bat '''
-                google-cloud-sdk\\bin\\gcloud auth configure-docker %REGION%-docker.pkg.dev --quiet
+                for /f "tokens=* usebackq" %%i in (`google-cloud-sdk\\bin\\gcloud auth print-access-token`) do set TOKEN=%%i
+                echo %TOKEN% | docker login -u oauth2accesstoken --password-stdin https://%REGION%-docker.pkg.dev
                 '''
             }
         }
