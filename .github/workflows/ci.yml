@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - dev
+      - test
+      - 'feature/*'
+  pull_request:
+    branches:
+      - dev
+      - test
       - 'feature/*'
 
 jobs:
@@ -23,3 +29,14 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=itsmeteja9
+            -Dsonar.sources=.
