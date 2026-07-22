@@ -4,12 +4,8 @@ on:
   push:
     branches:
       - dev
-      - test
-      - 'feature-*'
-  pull_request:
-    branches:
-      - main
- 
+      - 'feature/*'
+
 jobs:
   build:
     runs-on: ubuntu-latest
