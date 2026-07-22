@@ -1,0 +1,34 @@
+name: CD to GKE (Helm)
+
+on:
+  push:
+    branches:
+      - gke
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials devops-poc-cluster --zone us-central1-a
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+      - name: Deploy using Helm
+        run: |
+          helm upgrade --install devops-poc ./helm/devops-poc \
+            --set image.tag=${{ github.sha }}

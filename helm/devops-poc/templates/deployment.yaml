@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devops-poc
+  template:
+    metadata:
+      labels:
+        app: devops-poc
+    spec:
+      containers:
+        - name: devops-poc
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          ports:
+            - containerPort: 8080
