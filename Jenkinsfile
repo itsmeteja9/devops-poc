@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+     
     environment {
         PROJECT_ID = "devops-poc-demo"
         REGION = "us-central1"
