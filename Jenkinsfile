@@ -4,19 +4,26 @@ pipeline {
     environment {
         PROJECT_ID = "devops-poc-demo"
         REGION = "us-central1"
-        SERVICE = "devops-poc"
-        IMAGE = "us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc"
+        REPO = "hello-repo"
+        IMAGE_NAME = "devops-poc"
+        IMAGE_TAG = "1"
+        FULL_IMAGE_PATH = "${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Authenticate to GCP') {
             steps {
-                withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     bat """
-gcloud auth activate-service-account --key-file=%GOOGLE_APPLICATION_CREDENTIALS%
-gcloud config set project devops-poc-demo
-"""
+                        gcloud auth activate-service-account --key-file=%GOOGLE_APPLICATION_CREDENTIALS%
+                    """
                 }
             }
         }
@@ -24,30 +31,30 @@ gcloud config set project devops-poc-demo
         stage('Build Docker Image') {
             steps {
                 bat """
-docker build -t us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc:%BUILD_NUMBER% .
-"""
+                    docker build -t ${FULL_IMAGE_PATH} .
+                """
             }
         }
 
         stage('Push Image to Artifact Registry') {
             steps {
                 bat """
-gcloud auth configure-docker us-central1-docker.pkg.dev
-docker push us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc:%BUILD_NUMBER%
-"""
+                    gcloud auth configure-docker ${REGION}-docker.pkg.dev
+                    docker push ${FULL_IMAGE_PATH}
+                """
             }
         }
 
         stage('Deploy to Cloud Run') {
             steps {
                 bat """
-gcloud run deploy devops-poc ^
-    --image us-central1-docker.pkg.dev/devops-poc-demo/hello-repo/devops-poc:%BUILD_NUMBER% ^
-    --region us-central1 ^
-    --platform managed ^
-    --allow-unauthenticated ^
-    --project devops-poc-demo
-"""
+                    gcloud run deploy ${IMAGE_NAME} ^
+                        --image ${FULL_IMAGE_PATH} ^
+                        --region ${REGION} ^
+                        --platform managed ^
+                        --allow-unauthenticated ^
+                        --project ${PROJECT_ID}
+                """
             }
         }
     }
