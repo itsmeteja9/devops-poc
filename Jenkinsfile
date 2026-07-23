@@ -18,6 +18,34 @@ pipeline {
             }
         }
 
+        stage('SonarCloud Analysis') {
+            environment {
+                SONAR_TOKEN = credentials('SONAR_TOKEN')
+            }
+            steps {
+                withSonarQubeEnv('SonarCloud') {
+                    bat """
+                        sonar-scanner ^
+                        -Dsonar.projectKey=devops-poc ^
+                        -Dsonar.organization=itsmeteja9 ^
+                        -Dsonar.sources=. ^
+                        -Dsonar.host.url=https://sonarcloud.io ^
+                        -Dsonar.login=%SONAR_TOKEN%
+                    """
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
+                    }
+                }
+            }
+        }
+
         stage('Authenticate to GCP') {
             steps {
                 bat """

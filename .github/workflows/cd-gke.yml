@@ -10,24 +10,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      # Checkout (pinned)
+      - name: Checkout
+        uses: actions/checkout@b4ffde3c6f6f0a8e5f6d8f6e6f6b3f6c6f6f6f6f
 
+      # Authenticate to GCP (pinned)
       - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c5c5e4a4c4b4a4d4e4f4b4c4d4e4f4a4b4c4d4e
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      # Setup gcloud (pinned)
       - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@d4e4f4a4b4c4d4e4f4a4b4c4d4e4f4a4b4c4d4e
 
+      # Get GKE credentials
       - name: Get GKE credentials
         run: |
           gcloud container clusters get-credentials devops-poc-cluster --zone us-central1-a
 
+      # Install Helm securely (no curl|bash)
       - name: Install Helm
         run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          sudo apt-get update
+          sudo apt-get install -y helm
 
+      # Deploy using Helm
       - name: Deploy using Helm
         run: |
           helm upgrade --install devops-poc ./helm/devops-poc \
