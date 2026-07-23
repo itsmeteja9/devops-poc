@@ -3,11 +3,13 @@ name: CI Pipeline
 on:
   push:
     branches:
+      - main
       - dev
       - test
       - 'feature/*'
   pull_request:
     branches:
+      - main
       - dev
       - test
       - 'feature/*'
@@ -19,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install Node
+      - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
@@ -31,12 +33,8 @@ jobs:
         run: npm test
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v8
+        uses: SonarSource/sonarcloud-github-action@v3
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
-          args: >
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=itsmeteja9
-            -Dsonar.sources=.
+          projectBaseDir: .
